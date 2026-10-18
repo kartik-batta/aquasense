@@ -2,6 +2,10 @@
 
 Decision-aware **Value of Information (VOI)** sensing and constrained water allocation for drought-stressed agriculture.
 
+## Demo
+
+▶️ **[Watch the AquaSense demo video](docs/media/aquasense-demo.mp4)** · 📑 **[View the presentation deck (PDF)](docs/media/aquasense-presentation.pdf)**
+
 ## The problem
 
 During a drought, a basin authority must split a fixed water budget (`W_total`) across farm zones whose true water needs are uncertain, and it can afford only `K` field sensor visits before deciding. The usual rule of thumb is to *measure the zones you are most unsure about*. That is not the same as measuring the zones where **new information would change the allocation decision**. A zone with a wide but irrelevant uncertainty wastes a scarce sensor visit.
