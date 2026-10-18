@@ -1,0 +1,6 @@
+{
+  "name": "AquaSense — Adaptive Water Intelligence",
+  "description": "Decision-aware Value of Information sensing & constrained water allocation engine for sustainable agriculture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
