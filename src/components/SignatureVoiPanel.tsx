@@ -1,26 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Target, HelpCircle, CheckCircle2, Zap, Sparkles } from 'lucide-react';
-import { Zone, VoiCandidate, Language } from '../types';
+import { Scenario, Zone, VoiCandidate, Language } from '../types';
+import { allocationShift } from '../utils/simulationEngine';
 import { TRANSLATIONS } from '../utils/translations';
 
 interface SignatureVoiPanelProps {
+  scenario: Scenario;
   maxVarZone: Zone;
   voiZone: Zone;
-  voiCandidate: VoiCandidate | undefined;
+  candidateVois: VoiCandidate[];
   language: Language;
 }
 
+function elasticityLabel(candidate: VoiCandidate | undefined): string {
+  if (!candidate) return '—';
+  const label =
+    candidate.marginalSensitivity < 0.2 ? 'Inelastic' : candidate.isTippingPoint ? 'Tipping Point' : 'Moderate';
+  return `${candidate.marginalSensitivity.toFixed(2)} (${label})`;
+}
+
+const signed = (v: number) => (v >= 0 ? `+${v.toFixed(1)}` : v.toFixed(1));
+
 export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
+  scenario,
   maxVarZone,
   voiZone,
-  voiCandidate,
+  candidateVois,
   language,
 }) => {
   const t = TRANSLATIONS[language];
   const [interactiveHypothesis, setInteractiveHypothesis] = useState<number>(0);
 
-  const maxVarShift = interactiveHypothesis * 0.08 * maxVarZone.estimated_water_need_std;
-  const voiShift = interactiveHypothesis * 0.68 * voiZone.estimated_water_need_std;
+  const maxVarCandidate = candidateVois.find((c) => c.zoneId === maxVarZone.id);
+  const voiCandidate = candidateVois.find((c) => c.zoneId === voiZone.id);
+  const sameZone = maxVarZone.id === voiZone.id;
+
+  // Real re-optimization: how each zone's allocation moves if the sensor reads mean + k·σ.
+  const maxVarShift = useMemo(
+    () => allocationShift(scenario, maxVarZone.id, interactiveHypothesis),
+    [scenario, maxVarZone.id, interactiveHypothesis]
+  );
+  const voiShift = useMemo(
+    () => allocationShift(scenario, voiZone.id, interactiveHypothesis),
+    [scenario, voiZone.id, interactiveHypothesis]
+  );
+  // Meters are scaled against the larger of the two shifts so they stay comparable.
+  const meterScale = Math.max(1, Math.abs(maxVarShift), Math.abs(voiShift));
 
   return (
     <div className="material-card p-6 border border-slate-200 bg-white relative overflow-hidden">
@@ -45,10 +70,12 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
         </div>
 
         {/* Material 3 Tonal Filter Chips */}
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs self-start md:self-auto">
-          <span className="text-slate-600 text-[11px] px-1.5 font-medium">Test Realization:</span>
+        <div role="group" aria-labelledby="voi-test-realization" className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs self-start md:self-auto">
+          <span id="voi-test-realization" className="text-slate-600 text-[11px] px-1.5 font-medium">Test Realization:</span>
           <button
+            type="button"
             onClick={() => setInteractiveHypothesis(-1)}
+            aria-pressed={interactiveHypothesis === -1}
             className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
               interactiveHypothesis === -1
                 ? 'bg-white text-rose-700 shadow-xs'
@@ -58,7 +85,9 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
             -1σ (Low Need)
           </button>
           <button
+            type="button"
             onClick={() => setInteractiveHypothesis(0)}
+            aria-pressed={interactiveHypothesis === 0}
             className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
               interactiveHypothesis === 0
                 ? 'bg-white text-sky-800 shadow-xs'
@@ -68,7 +97,9 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
             0 (Prior Mean)
           </button>
           <button
+            type="button"
             onClick={() => setInteractiveHypothesis(1)}
+            aria-pressed={interactiveHypothesis === 1}
             className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
               interactiveHypothesis === 1
                 ? 'bg-white text-emerald-700 shadow-xs'
@@ -118,8 +149,8 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
             </div>
             <div>
               <span className="text-[11px] text-slate-500 block">Allocation Elasticity</span>
-              <span className="text-sm font-bold text-rose-600 font-mono">
-                0.12 (Inelastic)
+              <span className="text-sm font-bold text-rose-700 font-mono">
+                {elasticityLabel(maxVarCandidate)}
               </span>
             </div>
           </div>
@@ -129,7 +160,15 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
             <div className="flex items-start gap-2.5 bg-amber-50/70 p-3 rounded-xl border border-amber-100 text-slate-700">
               <HelpCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <p className="text-xs leading-relaxed">
-                <strong className="text-slate-900">Why standard heuristic fails here:</strong> Even though this unit has the largest statistical variance (σ = ±{maxVarZone.estimated_water_need_std} kL), its demand is in a saturated or low-vulnerability band. Changing beliefs here produces only a <span className="text-amber-800 font-mono font-bold">{maxVarShift >= 0 ? `+${maxVarShift.toFixed(1)}` : maxVarShift.toFixed(1)} kL</span> allocation shift.
+                {sameZone ? (
+                  <>
+                    <strong className="text-slate-900">Both strategies agree here:</strong> this unit has the largest variance (σ = ±{maxVarZone.estimated_water_need_std} kL) and also the highest decision value, so the heuristic and VOI pick it alike. A reading at the selected realization shifts its allocation by <span className="text-amber-800 font-mono font-bold">{signed(maxVarShift)} kL</span>.
+                  </>
+                ) : (
+                  <>
+                    <strong className="text-slate-900">Why the variance heuristic falls short:</strong> even though this unit has the largest statistical variance (σ = ±{maxVarZone.estimated_water_need_std} kL), a sensor reading at the selected realization shifts its allocation by only <span className="text-amber-800 font-mono font-bold">{signed(maxVarShift)} kL</span>, and its expected basin-wide loss reduction is <span className="font-mono font-bold">{maxVarCandidate ? maxVarCandidate.expectedLossReduction.toFixed(1) : '—'}</span>.
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -143,7 +182,7 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
             <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
               <div 
                 className="bg-amber-500 h-1.5 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(100, Math.max(8, (Math.abs(maxVarShift) / 100) * 100))}%` }}
+                style={{ width: `${Math.max(4, (Math.abs(maxVarShift) / meterScale) * 100)}%` }}
               />
             </div>
           </div>
@@ -186,7 +225,7 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
             <div>
               <span className="text-[11px] text-slate-500 block">Allocation Elasticity</span>
               <span className="text-sm font-bold text-sky-800 font-mono">
-                0.74 (Tipping Point)
+                {elasticityLabel(voiCandidate)}
               </span>
             </div>
           </div>
@@ -196,7 +235,7 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
             <div className="flex items-start gap-2.5 bg-sky-100/60 p-3 rounded-xl border border-sky-200 text-slate-800">
               <CheckCircle2 className="w-4 h-4 text-sky-700 shrink-0 mt-0.5" />
               <p className="text-xs leading-relaxed">
-                <strong className="text-sky-900">Why AquaSense VOI chooses this:</strong> This unit sits directly at the critical rationing threshold. New sensor evidence changes the constrained water distribution by <span className="text-sky-800 font-mono font-bold">{voiShift >= 0 ? `+${voiShift.toFixed(1)}` : voiShift.toFixed(1)} kL</span> across the network, averting severe quadratic crop loss!
+                <strong className="text-sky-900">Why AquaSense VOI chooses this:</strong> measuring this unit gives the largest expected reduction in basin-wide crop-stress loss (<span className="font-mono font-bold">{voiCandidate ? voiCandidate.expectedLossReduction.toFixed(1) : '—'}</span>). A reading at the selected realization shifts its allocation by <span className="text-sky-800 font-mono font-bold">{signed(voiShift)} kL</span>, with the difference rebalanced across the other zones.
               </p>
             </div>
           </div>
@@ -210,7 +249,7 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
             <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
               <div 
                 className="bg-sky-600 h-1.5 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(100, Math.max(25, (Math.abs(voiShift) / 100) * 100))}%` }}
+                style={{ width: `${Math.max(4, (Math.abs(voiShift) / meterScale) * 100)}%` }}
               />
             </div>
           </div>
@@ -229,7 +268,13 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
         </div>
 
         <div className="h-28 w-full relative">
-          <svg className="w-full h-full overflow-visible" viewBox="0 0 600 100" preserveAspectRatio="none">
+          <svg
+            className="w-full h-full overflow-visible"
+            viewBox="0 0 600 100"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label={`Illustration: ${maxVarZone.name} has a wide prior that sits away from the allocation supply limit, while ${voiZone.name} straddles it, so measuring ${voiZone.name} changes the decision.`}
+          >
             <defs>
               <linearGradient id="gradAmberLight" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.25" />
@@ -284,7 +329,7 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
             </span>
           </div>
           <span className="text-slate-600 font-mono text-xs">
-            Expected Loss Reduction: <strong className="text-sky-700 font-bold">{(voiCandidate?.expectedLossReduction || 42.6).toFixed(1)} pts</strong>
+            Expected Loss Reduction: <strong className="text-sky-700 font-bold">{voiCandidate ? `${voiCandidate.expectedLossReduction.toFixed(1)} pts` : '—'}</strong>
           </span>
         </div>
       </div>

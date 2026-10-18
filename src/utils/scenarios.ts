@@ -1,4 +1,4 @@
-import { Scenario, Zone } from '../types';
+import { Scenario } from '../types';
 import { normalRandom } from './simulationEngine';
 
 export const PRESET_SCENARIOS: Scenario[] = [
@@ -345,7 +345,7 @@ export const PRESET_SCENARIOS: Scenario[] = [
  */
 export function generateRandomScenario(seedBudget: number = 3300, sensorBudget: number = 1): Scenario {
   const base = PRESET_SCENARIOS[0];
-  const newZones = base.zones.map((z, idx) => {
+  const newZones = base.zones.map((z) => {
     // Add minor randomized variation
     const deltaMean = Math.round((Math.random() - 0.5) * 60);
     const mean = Math.max(200, z.estimated_water_need_mean + deltaMean);
