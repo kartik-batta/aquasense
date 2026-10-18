@@ -1,7 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 import { Camera, Upload, Sparkles, CheckCircle2 } from 'lucide-react';
 import { Zone, Language } from '../types';
 import { TRANSLATIONS } from '../utils/translations';
+
+type CanopyPreset = 'healthy' | 'moderate' | 'severe';
+
+/** Representative canopy NDVI and false-colour hue for each capture preset. */
+const PRESETS: Record<CanopyPreset, { ndvi: number; hue: number }> = {
+  healthy: { ndvi: 0.74, hue: 120 },
+  moderate: { ndvi: 0.51, hue: 65 },
+  severe: { ndvi: 0.32, hue: 28 },
+};
+
+const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 interface MultimodalVisionWidgetProps {
   selectedZone: Zone;
@@ -17,9 +29,11 @@ export const MultimodalVisionWidget: React.FC<MultimodalVisionWidgetProps> = ({
   const t = TRANSLATIONS[language];
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [selectedPreset, setSelectedPreset] = useState<'healthy' | 'moderate' | 'severe'>('moderate');
+  const [selectedPreset, setSelectedPreset] = useState<CanopyPreset>('moderate');
   const [computedNdvi, setComputedNdvi] = useState<number>(selectedZone.ndvi_current);
   const [appliedNotification, setAppliedNotification] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const uploadId = useId();
 
   // Render synthetic multispectral canopy imagery onto Canvas
   useEffect(() => {
@@ -33,20 +47,9 @@ export const MultimodalVisionWidget: React.FC<MultimodalVisionWidgetProps> = ({
 
     ctx.clearRect(0, 0, width, height);
 
-    let primaryHue = 120; // green
-    let saturation = 70;
-    let lightness = 38;
-    let baseNdvi = 0.74;
-
-    if (selectedPreset === 'moderate') {
-      primaryHue = 65; // yellow-green
-      baseNdvi = 0.51;
-    } else if (selectedPreset === 'severe') {
-      primaryHue = 28; // amber-brown drought
-      baseNdvi = 0.32;
-    }
-
-    setComputedNdvi(baseNdvi);
+    const primaryHue = PRESETS[selectedPreset].hue;
+    const saturation = 70;
+    const lightness = 38;
 
     // Generate procedural crop rows & false-color multispectral bands
     for (let x = 0; x < width; x += 12) {
@@ -83,6 +86,11 @@ export const MultimodalVisionWidget: React.FC<MultimodalVisionWidgetProps> = ({
 
   }, [selectedPreset]);
 
+  const selectPreset = (preset: CanopyPreset) => {
+    setSelectedPreset(preset);
+    setComputedNdvi(PRESETS[preset].ndvi);
+  };
+
   const handleApplyNdviToUncertainty = () => {
     let deltaStd = 0;
     if (computedNdvi < 0.4) {
@@ -95,15 +103,34 @@ export const MultimodalVisionWidget: React.FC<MultimodalVisionWidgetProps> = ({
 
     onUpdateZoneWithNdvi(selectedZone.id, computedNdvi, deltaStd);
     setAppliedNotification(true);
-    setTimeout(() => setAppliedNotification(false), 3000);
   };
+
+  // Auto-dismiss the confirmation; cleared on unmount so no state updates leak.
+  useEffect(() => {
+    if (!appliedNotification) return;
+    const timer = setTimeout(() => setAppliedNotification(false), 3000);
+    return () => clearTimeout(timer);
+  }, [appliedNotification]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file
     if (!file) return;
 
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type) || file.size > MAX_UPLOAD_BYTES) {
+      setUploadError('Please choose a PNG, JPEG or WebP image under 10 MB.');
+      return;
+    }
+    setUploadError('');
+
+    const objectUrl = URL.createObjectURL(file);
     const img = new Image();
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      setUploadError('That image could not be read. Please try another file.');
+    };
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
@@ -121,7 +148,7 @@ export const MultimodalVisionWidget: React.FC<MultimodalVisionWidgetProps> = ({
       const estimatedNdvi = Number((0.2 + ratio * 0.65).toFixed(2));
       setComputedNdvi(estimatedNdvi);
     };
-    img.src = URL.createObjectURL(file);
+    img.src = objectUrl;
   };
 
   return (
@@ -155,6 +182,8 @@ export const MultimodalVisionWidget: React.FC<MultimodalVisionWidgetProps> = ({
         <div className="lg:col-span-2 relative bg-slate-900 rounded-2xl overflow-hidden border border-slate-300 shadow-inner">
           <canvas
             ref={canvasRef}
+            role="img"
+            aria-label={`Multispectral canopy image for ${selectedZone.name}; estimated NDVI ${computedNdvi.toFixed(2)}`}
             width={480}
             height={220}
             className="w-full h-48 lg:h-56 object-cover block"
@@ -180,9 +209,11 @@ export const MultimodalVisionWidget: React.FC<MultimodalVisionWidgetProps> = ({
               Select Capture Feed or Upload Custom:
             </span>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2" role="group" aria-label="Canopy capture preset">
               <button
-                onClick={() => setSelectedPreset('healthy')}
+                type="button"
+                onClick={() => selectPreset('healthy')}
+                aria-pressed={selectedPreset === 'healthy'}
                 className={`px-2 py-1.5 rounded-xl text-xs font-semibold border text-center transition-all cursor-pointer ${
                   selectedPreset === 'healthy'
                     ? 'bg-emerald-50 text-emerald-800 border-emerald-400 shadow-xs'
@@ -192,7 +223,9 @@ export const MultimodalVisionWidget: React.FC<MultimodalVisionWidgetProps> = ({
                 Healthy
               </button>
               <button
-                onClick={() => setSelectedPreset('moderate')}
+                type="button"
+                onClick={() => selectPreset('moderate')}
+                aria-pressed={selectedPreset === 'moderate'}
                 className={`px-2 py-1.5 rounded-xl text-xs font-semibold border text-center transition-all cursor-pointer ${
                   selectedPreset === 'moderate'
                     ? 'bg-amber-50 text-amber-800 border-amber-400 shadow-xs'
@@ -202,7 +235,9 @@ export const MultimodalVisionWidget: React.FC<MultimodalVisionWidgetProps> = ({
                 Moderate
               </button>
               <button
-                onClick={() => setSelectedPreset('severe')}
+                type="button"
+                onClick={() => selectPreset('severe')}
+                aria-pressed={selectedPreset === 'severe'}
                 className={`px-2 py-1.5 rounded-xl text-xs font-semibold border text-center transition-all cursor-pointer ${
                   selectedPreset === 'severe'
                     ? 'bg-rose-50 text-rose-800 border-rose-400 shadow-xs'
@@ -214,29 +249,46 @@ export const MultimodalVisionWidget: React.FC<MultimodalVisionWidgetProps> = ({
             </div>
 
             {/* Custom Drone Image File Upload */}
-            <label className="mt-3.5 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-dashed border-slate-300 text-slate-700 text-xs font-medium cursor-pointer transition-colors shadow-xs">
+            <label
+              htmlFor={uploadId}
+              className="mt-3.5 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-dashed border-slate-300 text-slate-700 text-xs font-medium cursor-pointer transition-colors shadow-xs focus-within:ring-2 focus-within:ring-sky-500"
+            >
               <Upload className="w-3.5 h-3.5 text-sky-600" />
               <span>Upload Drone Multispectral Image</span>
-              <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+              <input
+                id={uploadId}
+                type="file"
+                accept={ALLOWED_IMAGE_TYPES.join(',')}
+                onChange={handleFileUpload}
+                className="sr-only"
+              />
             </label>
+            {uploadError && (
+              <p role="alert" className="mt-1.5 text-xs text-rose-700">
+                {uploadError}
+              </p>
+            )}
           </div>
 
           {/* Action Button: Feed into Bayesian State */}
           <div className="space-y-2 pt-2 border-t border-slate-100">
             <button
+              type="button"
               onClick={handleApplyNdviToUncertainty}
-              className="w-full py-2.5 px-3.5 rounded-xl bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold text-xs shadow-sm hover:shadow flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-2.5 px-3.5 rounded-xl bg-sky-700 hover:bg-sky-800 active:bg-sky-900 text-white font-bold text-xs shadow-sm hover:shadow flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Sparkles className="w-4 h-4" />
               <span>Inject NDVI Stress into Zone Uncertainty</span>
             </button>
 
+            <div role="status" aria-live="polite">
             {appliedNotification && (
               <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold justify-center animate-fade-in">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Zone prior updated! AquaSense re-optimized.</span>
               </div>
             )}
+            </div>
           </div>
 
         </div>

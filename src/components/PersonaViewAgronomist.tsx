@@ -1,22 +1,16 @@
 import React from 'react';
 import { Activity, Battery, Cpu, Radio } from 'lucide-react';
-import { Scenario, SimulationOutput, Language, Zone } from '../types';
-import { TRANSLATIONS } from '../utils/translations';
+import { SimulationOutput, Zone } from '../types';
 
 interface PersonaViewAgronomistProps {
-  scenario: Scenario;
   simulation: SimulationOutput;
   selectedZone: Zone;
-  language: Language;
 }
 
 export const PersonaViewAgronomist: React.FC<PersonaViewAgronomistProps> = ({
-  scenario,
   simulation,
   selectedZone,
-  language,
 }) => {
-  const t = TRANSLATIONS[language];
   const voi = simulation.voiSensing;
   const isMeasured = voi.measuredZones.includes(selectedZone.id);
   const effectiveMean = isMeasured ? selectedZone.hidden_ground_truth_need : selectedZone.estimated_water_need_mean;
@@ -112,7 +106,13 @@ export const PersonaViewAgronomist: React.FC<PersonaViewAgronomistProps> = ({
 
           {/* SVG Gaussian curve on clean light background */}
           <div className="h-32 w-full relative my-2 bg-white rounded-lg p-2 border border-slate-200">
-            <svg className="w-full h-full overflow-visible" viewBox="0 0 500 100" preserveAspectRatio="none">
+            <svg
+              className="w-full h-full overflow-visible"
+              viewBox="0 0 500 100"
+              preserveAspectRatio="none"
+              role="img"
+              aria-label={`Belief for ${selectedZone.name}: mean ${effectiveMean} kL, standard deviation ${effectiveStd.toFixed(0)} kL${isMeasured ? ' after sensor measurement' : ' (prior, not yet measured)'}.`}
+            >
               <line x1="0" y1="90" x2="500" y2="90" stroke="#CBD5E1" strokeWidth="1" />
               
               {/* Prior curve (wider, dashed) */}

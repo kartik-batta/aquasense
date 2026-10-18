@@ -1,22 +1,18 @@
 import React from 'react';
-import { Users, Calendar, Volume2, CheckCircle2, AlertCircle, Droplet } from 'lucide-react';
-import { Scenario, SimulationOutput, Language } from '../types';
-import { TRANSLATIONS } from '../utils/translations';
+import { Users, Volume2, CheckCircle2, AlertCircle, Droplet } from 'lucide-react';
+import { Scenario, SimulationOutput } from '../types';
 
 interface PersonaViewFarmerProps {
   scenario: Scenario;
   simulation: SimulationOutput;
-  language: Language;
   onSpeakSchedule: (text: string) => void;
 }
 
 export const PersonaViewFarmer: React.FC<PersonaViewFarmerProps> = ({
   scenario,
   simulation,
-  language,
   onSpeakSchedule,
 }) => {
-  const t = TRANSLATIONS[language];
   const voi = simulation.voiSensing;
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -43,6 +39,7 @@ export const PersonaViewFarmer: React.FC<PersonaViewFarmerProps> = ({
         </div>
 
         <button
+          type="button"
           onClick={() => onSpeakSchedule(scheduleSummaryText)}
           className="px-3.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-semibold transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
         >
@@ -57,7 +54,7 @@ export const PersonaViewFarmer: React.FC<PersonaViewFarmerProps> = ({
           const allocated = voi.allocations[zone.id] || 0;
           const day = daysOfWeek[idx % daysOfWeek.length];
           const timeSlot = idx % 2 === 0 ? '06:00 AM - 12:00 PM' : '01:00 PM - 07:00 PM';
-          const satisfaction = voi.satisfactions[zone.id] || 0.8;
+          const satisfaction = voi.satisfactions[zone.id] ?? 0;
 
           return (
             <div
@@ -71,7 +68,7 @@ export const PersonaViewFarmer: React.FC<PersonaViewFarmerProps> = ({
                   </span>
                   <div>
                     <h3 className="text-sm font-bold text-slate-900">{zone.name}</h3>
-                    <span className="text-xs text-slate-500">{zone.crop_type}</span>
+                    <span className="text-xs text-slate-600">{zone.crop_type}</span>
                   </div>
                 </div>
                 <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-200/80 text-slate-700">
@@ -90,7 +87,7 @@ export const PersonaViewFarmer: React.FC<PersonaViewFarmerProps> = ({
                     {allocated.toFixed(0)} kL
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
+                <div className="flex items-center justify-between text-xs text-slate-600 pt-1 border-t border-slate-100">
                   <span>Canal Gate Window:</span>
                   <span className="font-semibold text-slate-800">{timeSlot}</span>
                 </div>

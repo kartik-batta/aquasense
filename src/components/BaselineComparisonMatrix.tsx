@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, CheckCircle2, TrendingDown, Scale, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Layers, TrendingDown, Scale, ShieldCheck, ChevronRight } from 'lucide-react';
 import { SimulationOutput, Zone, Language } from '../types';
 import { TRANSLATIONS } from '../utils/translations';
 
@@ -74,7 +74,9 @@ export const BaselineComparisonMatrix: React.FC<BaselineComparisonMatrixProps> =
         </div>
 
         <button
+          type="button"
           onClick={() => setShowZoneDetails(!showZoneDetails)}
+          aria-expanded={showZoneDetails}
           className="text-xs text-sky-700 hover:text-sky-900 font-semibold flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
         >
           <span>{showZoneDetails ? 'Hide Zone Quotas' : 'View Zone-by-Zone Quotas'}</span>
@@ -98,7 +100,7 @@ export const BaselineComparisonMatrix: React.FC<BaselineComparisonMatrixProps> =
               }`}
             >
               {p.isAquaSense && (
-                <div className="absolute -top-2.5 right-3 bg-sky-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
+                <div className="absolute -top-2.5 right-3 bg-sky-700 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
                   AQUASENSE OPTIMAL
                 </div>
               )}
@@ -149,7 +151,7 @@ export const BaselineComparisonMatrix: React.FC<BaselineComparisonMatrixProps> =
                     Hard Budget Audit:
                   </span>
                   <span className="font-mono text-emerald-800 font-bold">
-                    {p.data.totalAllocated} kL (100%)
+                    {p.data.totalAllocated} kL ({p.data.budgetCompliancePct.toFixed(0)}% compliant)
                   </span>
                 </div>
 

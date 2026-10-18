@@ -68,7 +68,16 @@ export const GisFieldGrid: React.FC<GisFieldGridProps> = ({
           return (
             <div
               key={zone.id}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isSelected}
               onClick={() => onSelectZone(zone.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectZone(zone.id);
+                }
+              }}
               className={`rounded-2xl p-4.5 transition-all cursor-pointer relative overflow-hidden text-left border ${
                 isSelected
                   ? 'bg-sky-50/40 border-sky-500 shadow-md ring-2 ring-sky-500/10'
@@ -115,7 +124,7 @@ export const GisFieldGrid: React.FC<GisFieldGridProps> = ({
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-slate-200/80 rounded-full h-2 relative overflow-hidden">
+                <div className="w-full bg-slate-200/80 rounded-full h-2 relative overflow-hidden" aria-hidden="true">
                   <div
                     className={`h-2 rounded-full transition-all duration-500 ${
                       satisfactionPct >= 85

@@ -3,6 +3,10 @@ import { TrendingDown, Scale, ShieldCheck, Zap, Info } from 'lucide-react';
 import { SimulationOutput, Language } from '../types';
 import { TRANSLATIONS } from '../utils/translations';
 
+
+const formatLoss = (value: number) =>
+  value.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
 interface KpiScorecardProps {
   simulation: SimulationOutput;
   language: Language;
@@ -35,16 +39,16 @@ export const KpiScorecard: React.FC<KpiScorecardProps> = ({ simulation, language
         </div>
         <div className="mt-3 flex items-baseline gap-2">
           <span className="text-2xl lg:text-3xl font-extrabold text-slate-900 font-mono">
-            {voi.loss.toFixed(1)}
+            {formatLoss(voi.loss)}
           </span>
           <span className="text-xs text-emerald-700 font-bold font-mono">
             -{lossReductionPct}% vs Max-σ
           </span>
         </div>
         <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5">
-          <span>Max-σ: <strong className="text-slate-700 font-mono">{maxVar.loss.toFixed(1)}</strong></span>
+          <span>Max-σ: <strong className="text-slate-700 font-mono">{formatLoss(maxVar.loss)}</strong></span>
           <span aria-hidden="true" className="text-slate-300">·</span>
-          <span>Demand-Prop: <strong className="text-slate-700 font-mono">{demand.loss.toFixed(1)}</strong></span>
+          <span>Demand-Prop: <strong className="text-slate-700 font-mono">{formatLoss(demand.loss)}</strong></span>
         </div>
         <div className="mt-2.5 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
           <div 
@@ -92,10 +96,10 @@ export const KpiScorecard: React.FC<KpiScorecardProps> = ({ simulation, language
         </div>
         <div className="mt-3 flex items-baseline gap-2">
           <span className="text-2xl lg:text-3xl font-extrabold text-emerald-700 font-mono">
-            100.0%
+            {voi.budgetCompliancePct.toFixed(1)}%
           </span>
           <span className="text-xs text-emerald-800 font-semibold font-mono">
-            ZERO Overdraft
+            {voi.budgetCompliancePct === 100 ? 'ZERO Overdraft' : 'Overdraft Detected'}
           </span>
         </div>
         <div className="mt-2 text-xs text-slate-500 flex items-center justify-between">
@@ -127,7 +131,7 @@ export const KpiScorecard: React.FC<KpiScorecardProps> = ({ simulation, language
           </span>
         </div>
         <div className="mt-2 text-xs text-slate-500 flex items-center justify-between">
-          <span>Averted: <strong className="text-amber-800 font-mono">{(maxVar.loss - voi.loss).toFixed(1)} loss</strong></span>
+          <span>Averted: <strong className="text-amber-800 font-mono">{formatLoss(maxVar.loss - voi.loss)} loss</strong></span>
           <span className="text-emerald-700 font-semibold">+{demandComparisonPct}% vs Prop</span>
         </div>
         <div className="mt-2.5 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">

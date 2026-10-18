@@ -38,20 +38,27 @@ export const PersonaViewExecutive: React.FC<PersonaViewExecutiveProps> = ({
         deficitLossAverted: simulation.voiDeltaLoss,
       },
       complianceCertification: {
-        hardBudgetOverdraftViolation: 0,
-        budgetComplianceScore: '100.0%',
-        sensorQuotaAdherence: '100.0%',
+        hardBudgetOverdraftViolation_kL: Math.max(
+          0,
+          Number((simulation.voiSensing.totalAllocated - scenario.totalWaterBudget).toFixed(1))
+        ),
+        budgetComplianceScore: `${simulation.voiSensing.budgetCompliancePct.toFixed(1)}%`,
+        sensorQuotaAdherence:
+          simulation.voiSensing.measuredZones.length <= scenario.sensorBudget ? '100.0%' : '0.0%',
         jainFairnessRating: simulation.voiSensing.jainFairness >= 0.85 ? 'EXCELLENT' : 'ACCEPTABLE',
       },
     };
 
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(auditPayload, null, 2));
+    const blobUrl = URL.createObjectURL(
+      new Blob([JSON.stringify(auditPayload, null, 2)], { type: 'application/json' })
+    );
     const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('href', blobUrl);
     downloadAnchor.setAttribute('download', `aquasense_audit_${scenario.id}_${Date.now()}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
+    URL.revokeObjectURL(blobUrl);
 
     setDownloadSuccess(true);
     setTimeout(() => setDownloadSuccess(false), 3000);
@@ -79,7 +86,9 @@ export const PersonaViewExecutive: React.FC<PersonaViewExecutiveProps> = ({
         </div>
 
         <button
+          type="button"
           onClick={exportAuditLog}
+          aria-live="polite"
           className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
         >
           {downloadSuccess ? (
@@ -117,7 +126,8 @@ export const PersonaViewExecutive: React.FC<PersonaViewExecutiveProps> = ({
             />
           </div>
           <span className="text-[11px] text-slate-500 mt-1.5 block">
-            100.0% Hard Supply Constraint Met (0 Overdraft)
+            {voi.budgetCompliancePct.toFixed(1)}% Hard Supply Constraint Met (
+            {Math.max(0, voi.totalAllocated - scenario.totalWaterBudget).toFixed(1)} kL Overdraft)
           </span>
         </div>
 
