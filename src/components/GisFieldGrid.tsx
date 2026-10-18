@@ -1,5 +1,5 @@
 import React from 'react';
-import { Radio, Battery, Droplets, MapPin, Eye, AlertTriangle } from 'lucide-react';
+import { Radio, Battery, Droplets, MapPin, Eye } from 'lucide-react';
 import { Zone, SimulationOutput, Language } from '../types';
 import { TRANSLATIONS } from '../utils/translations';
 
@@ -23,39 +23,39 @@ export const GisFieldGrid: React.FC<GisFieldGridProps> = ({
   const measuredIds = voiPolicy.measuredZones;
 
   return (
-    <div className="glass-panel rounded-2xl p-5 lg:p-6 border border-white/10">
+    <div className="material-card p-6 border border-slate-200 bg-white">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 pb-3 border-b border-slate-100">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded-md bg-cyan-500/10 text-cyan-400">
+            <span className="p-1.5 rounded-lg bg-sky-100 text-sky-800">
               <MapPin className="w-4 h-4" />
             </span>
-            <h2 className="text-base font-bold text-white tracking-tight">
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">
               {t.fieldGridTitle}
             </h2>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-600 mt-0.5">
             {t.fieldGridSubtitle}
           </p>
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-3 text-[11px] text-slate-400">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50 inline-block animate-pulse" />
-            <span className="text-slate-300">Measured (VOI)</span>
+        <div className="flex items-center gap-4 text-xs text-slate-600">
+          <span className="flex items-center gap-1.5 font-medium">
+            <span className="w-2.5 h-2.5 rounded-full bg-sky-600 inline-block" />
+            <span className="text-slate-800">Measured (VOI)</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm bg-slate-700 border border-amber-500/40 inline-block" />
-            <span className="text-slate-400">Uncertainty (±2σ)</span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-amber-100 border border-amber-400 inline-block" />
+            <span className="text-slate-600">Uncertainty (±2σ)</span>
           </span>
         </div>
       </div>
 
       {/* Grid of Agricultural Management Zones */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {zones.map((zone) => {
           const isSelected = selectedZoneId === zone.id;
           const isMeasured = measuredIds.includes(zone.id);
@@ -69,33 +69,25 @@ export const GisFieldGrid: React.FC<GisFieldGridProps> = ({
             <div
               key={zone.id}
               onClick={() => onSelectZone(zone.id)}
-              className={`rounded-xl p-4 transition-all cursor-pointer relative overflow-hidden text-left border ${
+              className={`rounded-2xl p-4.5 transition-all cursor-pointer relative overflow-hidden text-left border ${
                 isSelected
-                  ? 'bg-slate-900/90 border-cyan-400 shadow-lg shadow-cyan-500/15'
+                  ? 'bg-sky-50/40 border-sky-500 shadow-md ring-2 ring-sky-500/10'
                   : isMeasured
-                  ? 'bg-slate-900/75 border-cyan-500/40 hover:border-cyan-400'
-                  : 'bg-slate-900/50 border-white/5 hover:border-white/20'
+                  ? 'bg-white border-sky-300 shadow-xs hover:border-sky-400'
+                  : 'bg-white border-slate-200 shadow-xs hover:border-slate-300 hover:shadow'
               }`}
             >
-              {/* Uncertainty halo indicator for high variance zones */}
-              {std > 100 && (
-                <div 
-                  className="absolute -top-10 -right-10 w-28 h-28 rounded-full border border-amber-500/20 pointer-events-none animate-pulse"
-                  style={{ animationDuration: '4s' }}
-                />
-              )}
-
               {/* Card Header */}
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-2xl p-1.5 rounded-lg bg-slate-950/80 border border-white/5 shadow-inner">
+                  <span className="text-2xl p-2 rounded-xl bg-slate-50 border border-slate-200 shadow-xs">
                     {zone.crop_icon}
                   </span>
                   <div>
-                    <h3 className="text-sm font-semibold text-white tracking-tight flex items-center gap-1.5">
+                    <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
                       {zone.name}
                     </h3>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-xs text-slate-500">
                       {zone.crop_type} · {zone.area_ha} ha · {zone.soil_type}
                     </span>
                   </div>
@@ -103,68 +95,68 @@ export const GisFieldGrid: React.FC<GisFieldGridProps> = ({
 
                 {/* Sensor Active Tag */}
                 {isMeasured && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-500/40 flex items-center gap-1 font-semibold shadow-sm">
-                    <Radio className="w-3 h-3 text-cyan-400 animate-pulse" />
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-300 flex items-center gap-1 font-bold shadow-xs">
+                    <Radio className="w-3 h-3 text-sky-600 animate-pulse" />
                     VOI PROBE
                   </span>
                 )}
               </div>
 
               {/* Water Allocation Progress vs Estimated Need */}
-              <div className="mt-3.5 bg-slate-950/60 p-2.5 rounded-lg border border-white/5">
+              <div className="mt-4 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-slate-400 flex items-center gap-1">
-                    <Droplets className="w-3 h-3 text-cyan-400" />
-                    Allocated / Prior Need:
+                  <span className="text-slate-600 flex items-center gap-1 font-medium">
+                    <Droplets className="w-3.5 h-3.5 text-sky-600" />
+                    Allocated / Prior:
                   </span>
-                  <span className="font-mono text-slate-200 font-medium">
-                    <strong className="text-cyan-300">{allocatedWater.toFixed(1)}</strong> / {priorMean} kL
+                  <span className="font-mono text-slate-800 font-semibold">
+                    <strong className="text-sky-800">{allocatedWater.toFixed(1)}</strong> / {priorMean} kL
                   </span>
                 </div>
 
-                {/* Progress bar with uncertainty range indicator */}
-                <div className="w-full bg-slate-800 rounded-full h-2 relative overflow-hidden">
+                {/* Progress bar */}
+                <div className="w-full bg-slate-200/80 rounded-full h-2 relative overflow-hidden">
                   <div
                     className={`h-2 rounded-full transition-all duration-500 ${
                       satisfactionPct >= 85
-                        ? 'bg-gradient-to-r from-cyan-500 to-emerald-400'
+                        ? 'bg-emerald-600'
                         : satisfactionPct >= 65
-                        ? 'bg-gradient-to-r from-amber-500 to-cyan-400'
-                        : 'bg-gradient-to-r from-rose-500 to-amber-500'
+                        ? 'bg-sky-600'
+                        : 'bg-amber-600'
                     }`}
                     style={{ width: `${Math.min(100, Math.max(5, (allocatedWater / priorMean) * 100))}%` }}
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] text-slate-500 mt-1 font-mono">
-                  <span>Satisfaction: {satisfactionPct}%</span>
-                  <span>Uncertainty: ±{std} kL</span>
+                <div className="flex items-center justify-between text-xs text-slate-500 mt-1.5 font-mono">
+                  <span>Satisfaction: <strong className="text-slate-800">{satisfactionPct}%</strong></span>
+                  <span>Uncertainty: <strong className="text-slate-800">±{std} kL</strong></span>
                 </div>
               </div>
 
               {/* Telemetry and Crop Risk Badges */}
-              <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/5">
+              <div className="mt-3.5 flex items-center justify-between text-xs text-slate-600 pt-2.5 border-t border-slate-100">
                 <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1.5 font-medium">
                     <span 
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        zone.telemetry_status === 'online' ? 'bg-emerald-400' : 'bg-amber-400'
+                      className={`w-2 h-2 rounded-full ${
+                        zone.telemetry_status === 'online' ? 'bg-emerald-600' : 'bg-amber-500'
                       }`} 
                     />
-                    <span className="capitalize text-[10.5px]">{zone.telemetry_status}</span>
+                    <span className="capitalize">{zone.telemetry_status}</span>
                   </span>
-                  <span className="flex items-center gap-1 font-mono text-[10.5px]">
-                    <Battery className="w-3 h-3 text-slate-400" />
+                  <span className="flex items-center gap-1 font-mono text-slate-500">
+                    <Battery className="w-3.5 h-3.5 text-slate-600" />
                     {zone.battery_pct}%
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-[10.5px] text-slate-400">
-                    Risk w: <strong className="text-slate-300 font-mono">{zone.crop_risk_weight.toFixed(1)}</strong>
+                  <span className="text-slate-500">
+                    Risk w: <strong className="text-slate-800 font-mono">{zone.crop_risk_weight.toFixed(1)}</strong>
                   </span>
-                  <span className="text-[10.5px] text-cyan-400 hover:underline flex items-center gap-0.5">
-                    <Eye className="w-3 h-3" />
+                  <span className="text-sky-700 font-medium hover:underline flex items-center gap-0.5">
+                    <Eye className="w-3.5 h-3.5" />
                     Inspect
                   </span>
                 </div>
