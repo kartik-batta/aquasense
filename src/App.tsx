@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Bot, Sliders, Droplets } from 'lucide-react';
+import { Bot, Sliders, Droplets, UserCheck, Activity, Users, ArrowRight } from 'lucide-react';
 import { Persona, Language, Scenario, SimulationOutput } from './types';
 import { PRESET_SCENARIOS, generateRandomScenario } from './utils/scenarios';
 import { runCompleteSimulation } from './utils/simulationEngine';
@@ -163,8 +163,8 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
         
-        {/* Scenario Banner / Sandbox Quick Action */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 material-card p-4 border border-slate-200 bg-white">
+        {/* Scenario Banner / Constraints Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 material-card p-4 border border-slate-200 bg-white shadow-xs">
           <div className="flex items-center gap-3">
             <span className="p-2 rounded-xl bg-sky-100 text-sky-800">
               <Droplets className="w-4 h-4" />
@@ -179,12 +179,14 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono self-start sm:self-auto">
-            <span className="px-3 py-1.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200">
-              W_total: <strong className="text-sky-800">{currentScenario.totalWaterBudget} kL</strong>
+          <div className="flex flex-wrap items-center gap-2 text-xs self-start sm:self-auto">
+            <span className="px-3 py-1.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200 flex items-center gap-1.5 shadow-2xs">
+              <span className="text-slate-500 font-medium">Available Water Budget:</span>
+              <strong className="text-sky-800 font-mono font-bold">{currentScenario.totalWaterBudget.toLocaleString()} kL</strong>
             </span>
-            <span className="px-3 py-1.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200">
-              Sensors K: <strong className="text-sky-800">{currentScenario.sensorBudget}</strong>
+            <span className="px-3 py-1.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200 flex items-center gap-1.5 shadow-2xs">
+              <span className="text-slate-500 font-medium">Sensor Quota:</span>
+              <strong className="text-sky-800 font-mono font-bold">{currentScenario.sensorBudget} Units</strong>
             </span>
             <button
               onClick={() => setIsSandboxOpen(true)}
@@ -196,69 +198,182 @@ export default function App() {
           </div>
         </div>
 
+        {/* Dynamic Persona & Vibe Adaptive Banner */}
+        <div className={`p-4.5 rounded-2xl border transition-all duration-300 shadow-xs ${
+          persona === 'executive'
+            ? 'bg-gradient-to-r from-indigo-50/90 via-white to-sky-50/70 border-indigo-200'
+            : persona === 'agronomist'
+            ? 'bg-gradient-to-r from-teal-50/90 via-white to-cyan-50/70 border-teal-200'
+            : 'bg-gradient-to-r from-emerald-50/90 via-white to-amber-50/70 border-emerald-200'
+        }`}>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className={`p-2.5 rounded-xl text-white shadow-xs transition-colors shrink-0 ${
+                persona === 'executive' ? 'bg-indigo-600' : persona === 'agronomist' ? 'bg-teal-600' : 'bg-emerald-600'
+              }`}>
+                {persona === 'executive' ? <UserCheck className="w-5 h-5" /> : persona === 'agronomist' ? <Activity className="w-5 h-5" /> : <Users className="w-5 h-5" />}
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs uppercase font-extrabold tracking-wider text-slate-500 font-mono">
+                    Active Operational Vibe:
+                  </span>
+                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                    persona === 'executive'
+                      ? 'bg-indigo-100 text-indigo-900 border border-indigo-300'
+                      : persona === 'agronomist'
+                      ? 'bg-teal-100 text-teal-900 border border-teal-300'
+                      : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                  }`}>
+                    {t.personas[persona].title} ({t.personas[persona].subtitle})
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 mt-1 max-w-3xl leading-relaxed">
+                  {t.personas[persona].description}
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Persona Switcher in Banner */}
+            <div className="flex items-center gap-1.5 self-start md:self-center shrink-0 bg-white/90 p-1 rounded-xl border border-slate-200 shadow-2xs">
+              <button
+                onClick={() => setPersona('executive')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  persona === 'executive'
+                    ? 'bg-indigo-600 text-white shadow-xs ring-2 ring-indigo-300'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Executive</span>
+              </button>
+              <button
+                onClick={() => setPersona('agronomist')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  persona === 'agronomist'
+                    ? 'bg-teal-600 text-white shadow-xs ring-2 ring-teal-300'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <Activity className="w-3.5 h-3.5" />
+                <span>Agronomist</span>
+              </button>
+              <button
+                onClick={() => setPersona('farmer_coop')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  persona === 'farmer_coop'
+                    ? 'bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-300'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Farmer Coop</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* 2. Top Row: KPI Scorecard */}
         <KpiScorecard simulation={simulation} language={language} />
 
-        {/* 3. Signature Interaction: Max Uncertainty vs AquaSense VOI Field */}
-        <SignatureVoiPanel
-          maxVarZone={maxVarZone}
-          voiZone={voiZone}
-          voiCandidate={voiCandidateInfo}
-          language={language}
-        />
-
-        {/* 4. GIS Field Grid & Drone Multispectral Scanner */}
-        <div className="space-y-6">
-          <GisFieldGrid
-            zones={currentScenario.zones}
-            simulation={simulation}
-            selectedZoneId={selectedZoneId}
-            onSelectZone={(id) => setSelectedZoneId(id)}
-            language={language}
-          />
-
-          <MultimodalVisionWidget
-            selectedZone={selectedZone}
-            onUpdateZoneWithNdvi={handleUpdateZoneWithNdvi}
-            language={language}
-          />
-        </div>
-
-        {/* 5. Persona-Adaptive Intelligence View */}
-        <div className="transition-all">
-          {persona === 'executive' && (
+        {/* 3. Persona-Adaptive Intelligence View (Immediately Adapts upon Persona Switch) */}
+        {persona === 'executive' && (
+          <div className="space-y-6">
             <PersonaViewExecutive
               scenario={currentScenario}
               simulation={simulation}
               language={language}
             />
-          )}
+            <SignatureVoiPanel
+              maxVarZone={maxVarZone}
+              voiZone={voiZone}
+              voiCandidate={voiCandidateInfo}
+              language={language}
+            />
+            <BaselineComparisonMatrix
+              simulation={simulation}
+              zones={currentScenario.zones}
+              language={language}
+            />
+            <div className="space-y-6">
+              <GisFieldGrid
+                zones={currentScenario.zones}
+                simulation={simulation}
+                selectedZoneId={selectedZoneId}
+                onSelectZone={(id) => setSelectedZoneId(id)}
+                language={language}
+              />
+              <MultimodalVisionWidget
+                selectedZone={selectedZone}
+                onUpdateZoneWithNdvi={handleUpdateZoneWithNdvi}
+                language={language}
+              />
+            </div>
+          </div>
+        )}
 
-          {persona === 'agronomist' && (
+        {persona === 'agronomist' && (
+          <div className="space-y-6">
             <PersonaViewAgronomist
               scenario={currentScenario}
               simulation={simulation}
               selectedZone={selectedZone}
               language={language}
             />
-          )}
+            <MultimodalVisionWidget
+              selectedZone={selectedZone}
+              onUpdateZoneWithNdvi={handleUpdateZoneWithNdvi}
+              language={language}
+            />
+            <GisFieldGrid
+              zones={currentScenario.zones}
+              simulation={simulation}
+              selectedZoneId={selectedZoneId}
+              onSelectZone={(id) => setSelectedZoneId(id)}
+              language={language}
+            />
+            <SignatureVoiPanel
+              maxVarZone={maxVarZone}
+              voiZone={voiZone}
+              voiCandidate={voiCandidateInfo}
+              language={language}
+            />
+            <BaselineComparisonMatrix
+              simulation={simulation}
+              zones={currentScenario.zones}
+              language={language}
+            />
+          </div>
+        )}
 
-          {persona === 'farmer_coop' && (
+        {persona === 'farmer_coop' && (
+          <div className="space-y-6">
             <PersonaViewFarmer
               scenario={currentScenario}
               simulation={simulation}
               language={language}
               onSpeakSchedule={handleSpeakText}
             />
-          )}
-        </div>
-
-        {/* 6. Matched Baseline Comparative Matrix */}
-        <BaselineComparisonMatrix
-          simulation={simulation}
-          zones={currentScenario.zones}
-          language={language}
-        />
+            <GisFieldGrid
+              zones={currentScenario.zones}
+              simulation={simulation}
+              selectedZoneId={selectedZoneId}
+              onSelectZone={(id) => setSelectedZoneId(id)}
+              language={language}
+            />
+            <BaselineComparisonMatrix
+              simulation={simulation}
+              zones={currentScenario.zones}
+              language={language}
+            />
+            <SignatureVoiPanel
+              maxVarZone={maxVarZone}
+              voiZone={voiZone}
+              voiCandidate={voiCandidateInfo}
+              language={language}
+            />
+          </div>
+        )}
 
       </main>
 
@@ -314,7 +429,7 @@ export default function App() {
             <span className="text-slate-700 font-medium">AquaSense: Decision-Aware Value-of-Information & Constrained Water Intelligence</span>
           </div>
           <div className="flex items-center gap-3 text-slate-500">
-            <span>AI Builder Cup 2026</span>
+            <span>Adaptive Watershed Management</span>
             <span aria-hidden="true" className="text-slate-300">·</span>
             <span>Mathematical Loss Proxy</span>
             <span aria-hidden="true" className="text-slate-300">·</span>

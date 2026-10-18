@@ -49,15 +49,15 @@ CRITICAL SCIENTIFIC & ETHICAL GUARDRAILS:
 1. NEVER fabricate or hallucinate metrics, water savings percentages, or crop yields.
 2. ALWAYS quote only the exact numeric values from the provided deterministic simulation state.
 3. STRICT TERMINOLOGY: Always refer to impact as "simulated crop-stress loss proxy under synthetic scenario" and NEVER claim "empirically field-validated water savings" or guarantee real-world harvest yields without field calibration.
-4. VALUE OF INFORMATION (VOI) EXPLANATION: Clearly explain why measuring a zone with lower variance (uncertainty) can yield a strictly higher VOI than measuring a zone with massive variance. Emphasize that VOI measures whether new data will alter the constrained allocation decision at the supply margin (W_total), whereas a zone whose allocation is already saturated or permanently zero gains no decision benefit from reduced uncertainty.
-5. FORMATTING: Format your response cleanly using standard markdown headings (###), bold text (**bold**), and clean bullet points. DO NOT use raw LaTeX math delimiters like $W_{total} = 2600\\text{ kL}$; write plain readable mathematical expressions like "W_total = 2,600 kL" or "σ = 50 kL". Keep it structured, executive-grade, and pleasant to read.
+4. VALUE OF INFORMATION (VOI) EXPLANATION: Clearly explain why measuring a zone with lower variance (uncertainty) can yield a strictly higher VOI than measuring a zone with massive variance. Emphasize that VOI measures whether new data will alter the constrained allocation decision at the supply quota limit, whereas a zone whose allocation is already saturated or permanently zero gains no decision benefit from reduced uncertainty.
+5. FORMATTING: Format your response cleanly using standard markdown headings (###), bold text (**bold**), and clean bullet points. DO NOT use raw LaTeX math delimiters; write plain readable expressions like "Water Budget = 2,600 kL" or "σ = 50 kL". Keep it structured, executive-grade, and pleasant to read.
 `;
 
     const contextPayload = `
 CURRENT SCENARIO:
 - Scenario Name: ${currentScenario?.name || 'Indus-Ganges Basin Drought'}
-- Total Water Budget (W_total): ${currentScenario?.totalWaterBudget} kL
-- Sensor Observation Budget (K): ${currentScenario?.sensorBudget} measurements
+- Total Available Water Budget: ${currentScenario?.totalWaterBudget} kL
+- Sensor Observation Limit: ${currentScenario?.sensorBudget} field measurements
 - Active Management Zones: ${JSON.stringify(currentScenario?.zones?.map((z: any) => ({
       id: z.id,
       name: z.name,
@@ -180,7 +180,7 @@ function generateDeterministicGroundedResponse(
 AquaSense prioritized sensor measurement on **${selectedVoiZone}** rather than **${highestVarZone}** (which had the highest statistical variance σ).
 
 **2. Mathematical Rationale (Decision-Aware VOI vs. Pure Variance):**
-- Measuring **${highestVarZone}** yields negligible decision value: under the constrained regional quota (W_total = ${scenario?.totalWaterBudget || 3200} kL), its allocation is relatively fixed at the boundary. Reducing its variance does not reallocate water elsewhere in the network.
+- Measuring **${highestVarZone}** yields negligible decision value: under the constrained regional quota (Total Water Budget = ${scenario?.totalWaterBudget || 3200} kL), its allocation is relatively fixed at the boundary. Reducing its variance does not reallocate water elsewhere in the network.
 - Conversely, **${selectedVoiZone}** sits on the critical inflection margin: resolving its uncertainty shifts optimal water quotas dynamically, averting severe quadratic crop damage across adjacent zones.
 
 **3. Quantitative Simulated Impact Matrix:**

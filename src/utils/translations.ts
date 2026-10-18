@@ -3,7 +3,7 @@ import { Language, Persona } from '../types';
 export interface TranslationDictionary {
   appTitle: string;
   appSubtitle: string;
-  cupBadge: string;
+  adaptiveBadge: string;
   totalBudget: string;
   sensorQuota: string;
   runSimulation: string;
@@ -51,7 +51,7 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
   en: {
     appTitle: 'AquaSense',
     appSubtitle: 'Adaptive Water Intelligence Engine',
-    cupBadge: 'AI Builder Cup 2026 · Sustainability & Social Impact',
+    adaptiveBadge: 'Autonomous Basin Intelligence',
     totalBudget: 'Total Water Supply Budget',
     sensorQuota: 'Sensor Sensing Budget (K)',
     runSimulation: 'Run Decision Engine',
@@ -113,7 +113,7 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
   hi: {
     appTitle: 'एक्वासेंस (AquaSense)',
     appSubtitle: 'अनुकूली जल बुद्धिमत्ता प्रणाली',
-    cupBadge: 'AI बिल्डर कप 2026 · स्थिरता एवं सामाजिक प्रभाव',
+    adaptiveBadge: 'स्वायत्त बेसिन बुद्धिमत्ता',
     totalBudget: 'कुल उपलब्ध जल बजट',
     sensorQuota: 'सेंसर माप कोटा (K)',
     runSimulation: 'सिमुलेशन चलाएं',
@@ -175,7 +175,7 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
   es: {
     appTitle: 'AquaSense',
     appSubtitle: 'Motor de Inteligencia Hídrica Adaptativa',
-    cupBadge: 'AI Builder Cup 2026 · Sostenibilidad e Impacto Social',
+    adaptiveBadge: 'Inteligencia de Cuenca Autónoma',
     totalBudget: 'Presupuesto Total de Agua',
     sensorQuota: 'Cuota de Medición de Sensores (K)',
     runSimulation: 'Ejecutar Simulación',
@@ -237,7 +237,7 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
   sw: {
     appTitle: 'AquaSense',
     appSubtitle: 'Injini ya Akili ya Maji Inayobadilika',
-    cupBadge: 'AI Builder Cup 2026 · Uendelevu na Athari za Kijamii',
+    adaptiveBadge: 'Akili ya Bonde la Maji',
     totalBudget: 'Bajeti Kamili ya Maji',
     sensorQuota: 'Kiwango cha Sensorer (K)',
     runSimulation: 'Endesha Uigaji',

@@ -129,7 +129,7 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
             <div className="flex items-start gap-2.5 bg-amber-50/70 p-3 rounded-xl border border-amber-100 text-slate-700">
               <HelpCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <p className="text-xs leading-relaxed">
-                <strong className="text-slate-900">Why standard heuristic fails here:</strong> Even though this unit has the largest statistical variance ($\sigma = {maxVarZone.estimated_water_need_std}$), its demand is in a saturated or low-vulnerability band. Changing beliefs here produces only a <span className="text-amber-800 font-mono font-bold">{maxVarShift >= 0 ? `+${maxVarShift.toFixed(1)}` : maxVarShift.toFixed(1)} kL</span> allocation shift.
+                <strong className="text-slate-900">Why standard heuristic fails here:</strong> Even though this unit has the largest statistical variance (σ = ±{maxVarZone.estimated_water_need_std} kL), its demand is in a saturated or low-vulnerability band. Changing beliefs here produces only a <span className="text-amber-800 font-mono font-bold">{maxVarShift >= 0 ? `+${maxVarShift.toFixed(1)}` : maxVarShift.toFixed(1)} kL</span> allocation shift.
               </p>
             </div>
           </div>
@@ -266,8 +266,8 @@ export const SignatureVoiPanel: React.FC<SignatureVoiPanelProps> = ({
 
             {/* Critical Allocation Boundary Line */}
             <line x1="365" y1="5" x2="365" y2="90" stroke="#E11D48" strokeWidth="2" strokeDasharray="4 4" />
-            <text x="372" y="20" fill="#BE123C" fontSize="9" fontFamily="monospace" fontWeight="bold">
-              Allocation Tipping Boundary (W_total)
+            <text x="372" y="20" fill="#BE123C" fontSize="9" fontFamily="sans-serif" fontWeight="bold">
+              Allocation Supply Limit
             </text>
           </svg>
         </div>

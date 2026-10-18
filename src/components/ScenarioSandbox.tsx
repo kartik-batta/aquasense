@@ -49,12 +49,12 @@ export const ScenarioSandbox: React.FC<ScenarioSandboxProps> = ({
         {/* Sliders */}
         <div className="space-y-5 my-5 text-xs">
           
-          {/* Total Water Budget W_total */}
+          {/* Total Water Budget */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-slate-700 font-bold flex items-center gap-1.5">
                 <Droplets className="w-4 h-4 text-sky-600" />
-                Total Basin Water Budget (W_total):
+                Total Basin Water Budget:
               </span>
               <span className="font-mono text-sky-800 font-bold text-sm">{budget} kL</span>
             </div>
@@ -73,12 +73,12 @@ export const ScenarioSandbox: React.FC<ScenarioSandboxProps> = ({
             </div>
           </div>
 
-          {/* Sensor Observation Budget K */}
+          {/* Sensor Observation Budget */}
           <div className="space-y-2 pt-2 border-t border-slate-100">
             <div className="flex items-center justify-between">
               <span className="text-slate-700 font-bold flex items-center gap-1.5">
                 <Radio className="w-4 h-4 text-sky-600" />
-                Sensor Observation Budget (K):
+                Field Sensor Observations:
               </span>
               <span className="font-mono text-sky-800 font-bold text-sm">{sensorBudget} Measurements</span>
             </div>
